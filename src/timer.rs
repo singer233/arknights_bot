@@ -1,5 +1,5 @@
 mod timer_starter;
-mod timed_function;
+mod timed_manager;
 
 pub fn start_timer() {
     todo!()

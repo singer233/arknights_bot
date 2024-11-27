@@ -7,3 +7,5 @@ edition = "2021"
 teloxide="0.13.0"
 anyhow = "1.0.93"
 tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread", "macros"] }
+uuid = { version = "1.11.0", features = ["v4","fast-rng","macro-diagnostics"] }
+log = "0.4.22"
