@@ -10,6 +10,7 @@ dependencies = [
  "log",
  "teloxide",
  "tokio",
+ "tokio-util",
  "uuid",
 ]
 
