@@ -72,13 +72,54 @@ mod test{
         let p = Arc::new(Mutex::new(0));
         {
             let p = p.clone();
-            let uuid = timed_function.add_function(async move{
+            timed_function.add_function(async move{
                 *(p.lock().unwrap()) = 3;
             },Duration::from_secs(1));
         }
         tokio::time::sleep(Duration::from_secs_f32(1.1)).await;
         let k = p.lock().unwrap().clone();
         assert_eq!(k, 3);
+
+    }
+    #[tokio::test]
+    async fn test_uuid_cancel(){
+        let token = CancellationToken::new();
+        let mut uuid :Uuid;
+        let mut timed_function = TimedFunction::new(token.clone());
+        let p = Arc::new(Mutex::new(0));
+        {
+            let p = p.clone();
+            uuid = timed_function.add_function(async move{
+                *(p.lock().unwrap()) = 3;
+            },Duration::from_secs(3));
+        }
+        tokio::time::sleep(Duration::from_secs_f32(1.1)).await;
+        timed_function.cancel_function(uuid);
+        let k = p.lock().unwrap().clone();
+        assert_eq!(k, 0);
+
+    }
+    #[tokio::test]
+    async fn test_cancel_all(){
+        let token = CancellationToken::new();
+        let mut timed_function = TimedFunction::new(token.clone());
+        let p = Arc::new(Mutex::new(0));
+        {
+            let p = p.clone();
+            timed_function.add_function(async move{
+                *(p.lock().unwrap()) = 3;
+            },Duration::from_secs(3));
+        }
+        {
+            let p = p.clone();
+            timed_function.add_function(async move{
+                *(p.lock().unwrap()) = 10;
+            },Duration::from_secs(9));
+        }
+        tokio::time::sleep(Duration::from_secs_f32(1.1)).await;
+        token.cancel();
+        let k = p.lock().unwrap().clone();
+        assert_eq!(k, 0);
 
     }
 }

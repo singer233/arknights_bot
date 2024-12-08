@@ -1,7 +1,7 @@
 
 mod bot_core;
 mod callback_handler;
-mod timer;
+mod callback_manager;
 
 use teloxide::prelude::*;
 #[tokio::main]
