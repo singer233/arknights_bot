@@ -3,8 +3,8 @@ use teloxide::prelude::*;
 use tokio::io::AsyncReadExt;
 use crate::callback_handler;
 
-pub(crate) fn build_bot<S:Into<String>>(token: S) -> Dispatcher<Bot, anyhow::Error, DefaultKey> {
-    let bot = Bot::new(token);
+pub(crate) fn build_bot() -> Dispatcher<Bot, anyhow::Error, DefaultKey> {
+    let bot = Bot::from_env();
     let message_schema = Update::filter_message().endpoint(message_handler);
     let member_schema = Update::filter_chat_member();
     let inline_query_schema = Update::filter_inline_query();
