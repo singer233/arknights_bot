@@ -47,32 +47,19 @@ impl TimedFunction{
         uuid
 
     }
-    pub(crate) fn add_function_with_uuid<F>(&mut self, future: F, delay:Duration,uuid: &Uuid) ->anyhow::Result<()>
+    #[must_use]
+    #[inline]
+    pub(crate) fn add_function_with_token<F>(&mut self, future: F, delay:Duration) ->CancellationToken
     where
         F: Future + Send + 'static,
         F::Output: Send + 'static,
     {
         let token = self.main_token.child_token();
-        ensure!(self.cancel_token_map.write().unwrap().insert_custom_uuid(token.clone(),uuid.clone()));
         {
-            let map = self.cancel_token_map.clone();
-            let uuid = uuid.clone();
-            tokio::spawn(
-                async move {
-                    tokio::select! {
-                        _ = tokio::time::sleep(delay) => {
-                            future.await;
-                            map.write().unwrap().remove(&uuid);
-                        }
-                        _ = token.cancelled() => {
-                            // do nothing
-                        }
-                    }
-                }
-            );
+            let token = token.clone();
+            Self::lunch_function(future,delay,token);
         }
-        Ok(())
-
+        token
     }
     pub(crate) fn cancel_function(&mut self, uuid: &Uuid){
         if let Some(token) = self.cancel_token_map.write().unwrap().remove(uuid){
@@ -80,6 +67,33 @@ impl TimedFunction{
         } else {
             trace!("cancel_function: uuid not found");
         }
+    }
+    #[inline]
+    pub(crate) fn function_with_custom_token<F>(future: F, delay:Duration, sub_token:CancellationToken)
+    where
+        F: Future + Send + 'static,
+        F::Output: Send + 'static,
+    {
+        Self::lunch_function(future,delay,sub_token);
+    }
+
+    fn lunch_function<F>(future: F, delay:Duration,token:CancellationToken)
+    where
+        F: Future + Send + 'static,
+        F::Output: Send + 'static,
+    {
+        tokio::spawn(
+            async move {
+                tokio::select! {
+                        _ = tokio::time::sleep(delay) => {
+                            future.await;
+                        }
+                        _ = token.cancelled() => {
+                            // do nothing
+                        }
+                    }
+            }
+        );
     }
 }
 #[cfg(test)]

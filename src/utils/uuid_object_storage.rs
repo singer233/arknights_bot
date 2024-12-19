@@ -16,14 +16,7 @@ impl <T> ObjectStorage<T> {
         self.storage.insert(uuid, value);
         uuid
     }
-    pub fn insert_custom_uuid(&mut self, value: T, uuid: Uuid)->bool {
-        if !self.storage.contains_key(&uuid){
-            self.storage.insert(uuid, value);
-            true
-        } else {
-            false
-        }
-    }
+
     #[inline]
     fn gen_uuid(&self)->Uuid{
         let mut new_uuid = Uuid::new_v4();

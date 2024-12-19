@@ -1,12 +1,22 @@
 
 mod bot_core;
-mod callback_handler;
-mod callback_manager;
+mod callback_handle;
 mod utils;
+mod config_builder;
 
+use teloxide::dispatching::DefaultKey;
 use teloxide::prelude::*;
-#[tokio::main]
+use crate::bot_core::init_bot;
+use crate::config_builder::get_config;
+
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
-    let mut bot = bot_core::build_bot_;
-    bot.dispatch().await;
+    init().await
+        .dispatch()
+        .await;
+}
+async fn init()->Dispatcher<Bot, anyhow::Error, DefaultKey>{
+    let config = get_config();
+    let bot_config = config.config();
+    init_bot(bot_config)
 }
